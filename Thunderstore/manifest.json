@@ -1,0 +1,9 @@
+﻿{
+	"name": "ScrapMe",
+	"version_number": "0.1.0",
+	"website_url": "",
+	"description": "On-pickup item scrapping for quick fixes",
+	"dependencies": [
+		"bbepis-BepInExPack-5.4.2121"
+	]
+}
