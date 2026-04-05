@@ -20,7 +20,7 @@ The config should be applied to your current run immediately, but won't apply to
 
 ### how to use (dev)
 
-For mod devs, add a dependency on ScrapMe, then call `ScrapMe.ScrapMe.plugin.SetBans(nameToken, [itemTokens])`,
+For mod devs, add a dependency on ScrapMe, then call `ScrapMe.ScrapMe.plugin.SetBans(bodyName, [itemNames])`,
 ideally with `RoR2Application.OnLoad`, or from `Start()`.
 
 Don't worry about having to clean config when a broken item stops being broken, this API
@@ -33,13 +33,18 @@ calls I've seen so far, so bring it up on the discord if it becomes an issue.
 ## evil schemes
 
 * [√] Allow end-users to apply their own bans via config.
-* [ ] Config do-over to use `CharacterBody.name` for consistency reasons. Breaking change.
+* [√] Config do-over to use `CharacterBody.name` for consistency reasons. Breaking change.
 * [.] Add ability to adjust user item bans mid-game.
   * [ ] Add ability to change bans via console command.
   * [.] Add RiskOfOptions support.
     * [ ] Add config auto-apply.
     * [ ] Add scrapping newly-banned items in inventory when applying config.
+    * [ ] Add ability to unban dev-banned items. At your own risk.
 * [ ] Add auto-scrapping items when changing characters, i.e. Artifact of Metamorphosis.
+* [ ] Figure out a good system to ban broken item combos, i.e. Visions of Heresy + Eclipse Lite.
+  * [ ] Ensure said system can be config'd
+* [ ] Work out server-client interaction, if any clients have the mod installed.
+  * I'm pretty sure this mod is server-sided, but not certain.
 
 ## thanks
 

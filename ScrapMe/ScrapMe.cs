@@ -102,18 +102,25 @@ namespace ScrapMe
                 "Characters to look for, comma-separated. Must be as prefab names, i.e. CommandoBody."
             );
             public readonly Dictionary<string, ConfigEntry<string>> itemBans = new();
-            
+            public readonly Dictionary<string, ConfigEntry<string>> itemUnbans = new();
             public bool BindBody(string body)
             {
                 if (itemBans.ContainsKey(body)) return false; // skip work, body is already bound
-                var configEntry = plugin.Config.Bind(
+                var itemBanEntry = plugin.Config.Bind(
                     "Characters",
                     $"{body}_ItemBans",
                     "",
                     $"Items to auto-scrap for {body}, comma-separated, using prefab names, i.e. HealingPotion."
                 );
-                itemBans[body] = configEntry;
-                RiskOfOptionsCompat.CreateBodyEntry(configEntry);
+                itemBans[body] = itemBanEntry;
+                RiskOfOptionsCompat.CreateBanEntry(itemBanEntry);
+                var itemUnbanEntry = plugin.Config.Bind(
+                    "Characters",
+                    $"{body}_ItemUnbans",
+                    "",
+                    $"Unbanned items for {body}. Use at your own risk; the items were likely banned for a reason."
+                );
+                
                 return true; // work done
             }
             public void Load()

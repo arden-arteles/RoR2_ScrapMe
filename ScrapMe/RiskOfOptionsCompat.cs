@@ -53,34 +53,44 @@ public static class RiskOfOptionsCompat
         ScrapMe.plugin.config.copyHolder.Value = names.Join();
     }*/
     
-    internal static readonly HashSet<string> mappedBodies = [];
+    internal static readonly HashSet<string> mappedEntries = [];
 
     [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
     internal static void CreateCurrentBodyEntry()
     {
-        var prefabName = ScrapMe.GetPrefabNameFromClone(
-            RoR2.PlayerCharacterMasterController.instances.First().body.name
-        );
-        if (ScrapMe.plugin.config.BindBody(prefabName)) // also creates an area to input. baller
-        {
-            ScrapMe.plugin.config.charNames.Value += $",{prefabName}";
-            Log.Info($"Created entry for body {prefabName}");
-        }
-        else
-        {
-            Log.Info("Already had entry for {prefabName}, skipping");
+        var objNames = RoR2.PlayerCharacterMasterController.instances.Select(b => b.body.name);
+        foreach (var name in objNames) {
+            var prefabName = ScrapMe.GetPrefabNameFromClone(name);
+            if (ScrapMe.plugin.config.BindBody(prefabName)) // also creates an area to input. baller
+            {
+                ScrapMe.plugin.config.charNames.Value += $",{prefabName}";
+                Log.Info($"Created entry for body {prefabName}");
+            }
+            else
+            {
+                Log.Info($"Already had entry for {prefabName}, skipping");
+            }
         }
     }
     
     [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-    internal static void CreateBodyEntry(ConfigEntry<string> associated)
+    internal static void CreateBanEntry(ConfigEntry<string> associated)
     {
         if (!enabled) return;
         
         var name = associated.Definition.Key;
-        if (mappedBodies.Contains(name)) return;
+        if (mappedEntries.Contains(name)) return;
         
         ModSettingsManager.AddOption(new StringInputFieldOption(associated));
-        mappedBodies.Add(name);
+        mappedEntries.Add(name);
+    }
+
+    internal static void CreateUnbanEntry(ConfigEntry<string> associated)
+    {
+        if (!enabled) return;
+        var name = associated.Definition.Key;
+        if (mappedEntries.Contains(name)) return;
+        ModSettingsManager.AddOption(new StringInputFieldOption(associated));
+        mappedEntries.Add(name);
     }
 }
