@@ -1,8 +1,8 @@
 ﻿{
 	"name": "ScrapMe",
-	"version_number": "0.1.0",
+	"version_number": "0.2.0",
 	"website_url": "",
-	"description": "On-pickup item scrapping for quick fixes",
+	"description": "On-pickup item scrapping for per-character item bans",
 	"dependencies": [
 		"bbepis-BepInExPack-5.4.2121"
 	]

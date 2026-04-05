@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
@@ -11,7 +12,7 @@ namespace ScrapMe
 
     // This attribute is required, and lists metadata for your plugin.
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
-    
+    [BepInDependency("com.rune580.riskofoptions", BepInDependency.DependencyFlags.SoftDependency)]
     public class ScrapMe : BaseUnityPlugin
     {
         /// singleton
@@ -20,7 +21,7 @@ namespace ScrapMe
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "not_score";
         public const string PluginName = "ScrapMe";
-        public const string PluginVersion = "0.1.0";
+        public const string PluginVersion = "0.2.0";
         
         /*
         // failed attempt at impl config here
@@ -85,42 +86,44 @@ namespace ScrapMe
 
         internal ConfigHolder config;
         */
-
+        
         internal class ConfigHolder
         {
-            public readonly ConfigEntry<string> charNameTokens = plugin.Config.Bind(
+            /*public readonly ConfigEntry<string> copyHolder = plugin.Config.Bind(
+                "! Main",
+                "Copy/Paste Holder",
+                "",
+                "Copy things from here."
+            );*/
+            public readonly ConfigEntry<string> charNames = plugin.Config.Bind(
                 "! Main",
                 "Characters to Change",
                 "",
-                "Characters to look for, comma-separated. Must be as name tokens, i.e. COMMANDO_BODY_NAME."
+                "Characters to look for, comma-separated. Must be as prefab names, i.e. CommandoBody."
             );
             public readonly Dictionary<string, ConfigEntry<string>> itemBans = new();
             
-
-            public void BindBody(string body)
+            public bool BindBody(string body)
             {
-                if (itemBans.ContainsKey(body)) return; // skip work, body is already bound
-                itemBans[body] = plugin.Config.Bind(
+                if (itemBans.ContainsKey(body)) return false; // skip work, body is already bound
+                var configEntry = plugin.Config.Bind(
                     "Characters",
                     $"{body}_ItemBans",
                     "",
-                    $"Items to auto-scrap for {body}, comma-separated, using name tokens, i.e. ITEM_HEALINGPOTION_NAME."
+                    $"Items to auto-scrap for {body}, comma-separated, using prefab names, i.e. HealingPotion."
                 );
+                itemBans[body] = configEntry;
+                RiskOfOptionsCompat.CreateBodyEntry(configEntry);
+                return true; // work done
             }
             public void Load()
             {
                 // get new bodies
-                var bodies = new HashSet<string>(charNameTokens.Value.Split(",")
+                var bodies = new HashSet<string>(charNames.Value.Split(",")
                     .Select(b => b.Trim())
                     .Where(b => !string.IsNullOrEmpty(b))
                 );
-                // cleanup old binds and ban entries, try to be minimal
-                foreach (var entry in itemBans.Values)
-                {
-                    if (bodies.Contains(entry.Definition.Key)) continue;
-                    plugin.Config.Remove(entry.Definition);
-                    plugin.userItemBans.Remove(entry.Definition.Key);
-                }
+
                 // add binds
                 foreach (var body in bodies)
                 {
@@ -136,14 +139,40 @@ namespace ScrapMe
             public void Save()
             {
                 // TODO
-                // update charNameTokens
-                charNameTokens.Value = plugin.userItemBans.Keys.Join();
-                
+                // update charNames
+                charNames.Value = plugin.userItemBans.Keys.Join();
                 // update binds
-                // no cleanup necessary
+                foreach (var record in plugin.userItemBans)
+                {
+                    itemBans[record.Key].Value = record.Value.Join();
+                }
+                // no cleanup necessary...
+                // because we do it when loading right after
+                Load();
+            }
+
+            public void Cleanup()
+            {
+                // TODO
             }
         }
 
+        public static string SanitizePrefabName(string prefabName)
+        {
+            // TODO
+            return prefabName;
+        }
+
+        public static string GetPrefabNameFromClone(string cloneName)
+        {
+            return cloneName.Substring(0, cloneName.LastIndexOf("(Clone)"));
+        }
+
+        public static string GetPrefabNameFromItem(string itemName)
+        {
+            return itemName.Substring(itemName.IndexOf("Index.") + 6);
+        }
+        
         internal ConfigHolder config;
         
         internal void Awake()
@@ -159,131 +188,44 @@ namespace ScrapMe
 
             config = new();
             config.Load();
+
+            RiskOfOptionsCompat.InitConfigMenu();
         }
 
-        public HashSet<string> GetBans(string bodyNameToken)
+        /// <summary>
+        /// Gets the bans for a given character.
+        /// </summary>
+        /// <param name="bodyName">Name of the body's prefab.</param>
+        /// <returns></returns>
+        public HashSet<string> GetBans(string bodyName)
         {
-            if (!devItemBans.ContainsKey(bodyNameToken)) 
-                devItemBans[bodyNameToken] = new();
-            return devItemBans[bodyNameToken];
+            if (!devItemBans.ContainsKey(bodyName)) 
+                devItemBans[bodyName] = new();
+            return devItemBans[bodyName];
         }
 
-        public void SetBans(string bodyNameToken, IEnumerable<string> bans)
+        /// <summary>
+        /// Set the bans of a particular character.
+        /// </summary>
+        /// <param name="bodyName">Name of the body's prefab.</param>
+        /// <param name="bans">Collection of PickupDef.internalName's for items to be baned.</param>
+        public void SetBans(string bodyName, IEnumerable<string> bans)
         {
-            devItemBans[bodyNameToken] = new(bans);
+            devItemBans[bodyName] = new(bans);
         }
+
+        /*[ConCommand(commandName = "scrapme.ban_item", helpText = "Add an item to this character's ban config")]
+        public void ConsoleCommandAddBan(ConCommandArgs args)
+        {
+            
+        }*/
+        
         
         internal void Start()
         {
             // Log.Info("we made it lesgo");
             // SetBans("COMMANDO_BODY_NAME", ["ITEM_HEALINGPOTION_NAME", "ITEM_SEED_NAME", "ITEM_BARRIERONOVERHEAL_NAME", "ITEM_PARENTEGG_NAME"]);
             // power elixir leeching seed aegis and planula
-        }
-        
-        internal static class RoR2Patches
-        {
-            [HarmonyPatch(typeof(GenericPickupController), "AttemptGrant")]
-            [HarmonyPrefix]
-            public static void ReplaceWithScrapIfBannedForChar(
-                CharacterBody body,
-                GenericPickupController __instance,
-                bool __runOriginal
-            )
-            {
-                if (!__runOriginal || __instance == null || body == null || body.baseNameToken == null) return;
-
-                HashSet<string> itemBans = new();
-                
-                //if (!plugin.itemBans.TryGetValue(body.baseNameToken, out var bannedItems) || bannedItems == null) return;
-                if (plugin.devItemBans.TryGetValue(body.baseNameToken, out var dBans) && dBans != null)
-                {
-                    itemBans.UnionWith(dBans);
-                }
-
-                if (plugin.userItemBans.TryGetValue(body.baseNameToken, out var uBans) && uBans != null)
-                {
-                    itemBans.UnionWith(uBans);
-                }
-
-                if (itemBans.Count == 0) return; // if there aren't bans
-                
-                var pickupState = __instance.pickup;
-                // pickupState.pickupIndex guaranteed never null
-                var pickupDef = PickupCatalog.GetPickupDef(pickupState.pickupIndex);
-                if (pickupDef == null || pickupDef.nameToken == null) return;
-                
-                PickupDef newPickup = null; // explicit init because i'm from C++
-                if (!itemBans.Contains(pickupDef.nameToken)) return;
-                // item needs to be replaced, depending on the tier
-                
-                if (pickupDef.itemIndex == ItemIndex.None)
-                {
-                    if (pickupDef.coinValue > 0) return; // lunar coin
-                    if (pickupDef.droneIndex != DroneIndex.None) return;
-                    if (pickupDef.artifactIndex != ArtifactIndex.None) return; // ???? why are these pickups
-                    if (pickupDef.equipmentIndex != EquipmentIndex.None) return; // could do equipment swap but idrc
-                    Log.Error($"Undefined behavior for pickup {pickupDef.nameToken}");
-                    return;
-                }
-                
-                switch (pickupDef.itemTier)
-                {
-                    case ItemTier.Tier1:
-                    case ItemTier.Tier2:
-                    case ItemTier.Tier3:
-                    case ItemTier.Boss:
-                        newPickup = PickupCatalog.GetPickupDef(
-                            PickupCatalog.FindScrapIndexForItemTier(pickupDef.itemTier)
-                        );
-                        break;
-                    case ItemTier.Lunar:
-                        newPickup = PickupCatalog.GetPickupDef(
-                            PickupCatalog.FindPickupIndex(ItemCatalog.FindItemIndex("Pearl"))
-                        );
-                        // this is what happens when you "scrap" a lunar.
-                        // except it auto-scraps so no irradiant pearl for you
-                        break;
-                    case ItemTier.VoidTier1:
-                        newPickup = PickupCatalog.GetPickupDef(
-                            PickupCatalog.FindScrapIndexForItemTier(ItemTier.Tier1)
-                        );
-                        break;
-                    case ItemTier.VoidTier2:
-                        newPickup = PickupCatalog.GetPickupDef(
-                            PickupCatalog.FindScrapIndexForItemTier(ItemTier.Tier2)
-                        );
-                        break;
-                    case ItemTier.VoidTier3:
-                        newPickup = PickupCatalog.GetPickupDef(
-                            PickupCatalog.FindScrapIndexForItemTier(ItemTier.Tier3)
-                        );
-                        break;
-                    case ItemTier.VoidBoss:
-                        newPickup = PickupCatalog.GetPickupDef(
-                            PickupCatalog.FindScrapIndexForItemTier(ItemTier.Boss)
-                        );
-                        break;
-                    default:
-                        Log.Error($"Failed to find appropriate replacement for item {pickupDef.nameToken}");
-                        return;
-                    // was thinking of full interrupting here but idk what that would have side effects on
-                    // so nothing happens instead
-                    // __runOriginal = false;
-                    // you just will not be able to pick up the item
-                    // break;
-                }
-                if (newPickup == null)
-                {
-                    Log.Error($"Replacement item for {pickupDef.nameToken} resolved null, not replacing");
-                    return;
-                }
-                Log.Info($"Replacing {pickupDef.nameToken} with {newPickup.nameToken}");
-                __instance.pickup = new UniquePickup(newPickup.pickupIndex);
-            }
-            
-            // patch 2: when character enters stage, check inventory for offending items,
-            // and scrap them.
-            
         }
 
         /// <summary>
