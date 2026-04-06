@@ -60,7 +60,7 @@ public static class RiskOfOptionsCompat
     {
         var objNames = RoR2.PlayerCharacterMasterController.instances.Select(b => b.body.name);
         foreach (var name in objNames) {
-            var prefabName = ScrapMe.GetPrefabNameFromClone(name);
+            var prefabName = Utils.GetPrefabNameFromClone(name);
             if (ScrapMe.plugin.config.BindBody(prefabName)) // also creates an area to input. baller
             {
                 ScrapMe.plugin.config.charNames.Value += $",{prefabName}";

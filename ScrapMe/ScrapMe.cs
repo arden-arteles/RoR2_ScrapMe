@@ -86,101 +86,15 @@ namespace ScrapMe
 
         internal ConfigHolder config;
         */
+
         
-        internal class ConfigHolder
-        {
-            /*public readonly ConfigEntry<string> copyHolder = plugin.Config.Bind(
-                "! Main",
-                "Copy/Paste Holder",
-                "",
-                "Copy things from here."
-            );*/
-            public readonly ConfigEntry<string> charNames = plugin.Config.Bind(
-                "! Main",
-                "Characters to Change",
-                "",
-                "Characters to look for, comma-separated. Must be as prefab names, i.e. CommandoBody."
-            );
-            public readonly Dictionary<string, ConfigEntry<string>> itemBans = new();
-            public readonly Dictionary<string, ConfigEntry<string>> itemUnbans = new();
-            public bool BindBody(string body)
-            {
-                if (itemBans.ContainsKey(body)) return false; // skip work, body is already bound
-                var itemBanEntry = plugin.Config.Bind(
-                    "Characters",
-                    $"{body}_ItemBans",
-                    "",
-                    $"Items to auto-scrap for {body}, comma-separated, using prefab names, i.e. HealingPotion."
-                );
-                itemBans[body] = itemBanEntry;
-                RiskOfOptionsCompat.CreateBanEntry(itemBanEntry);
-                var itemUnbanEntry = plugin.Config.Bind(
-                    "Characters",
-                    $"{body}_ItemUnbans",
-                    "",
-                    $"Unbanned items for {body}. Use at your own risk; the items were likely banned for a reason."
-                );
-                
-                return true; // work done
-            }
-            public void Load()
-            {
-                // get new bodies
-                var bodies = new HashSet<string>(charNames.Value.Split(",")
-                    .Select(b => b.Trim())
-                    .Where(b => !string.IsNullOrEmpty(b))
-                );
-
-                // add binds
-                foreach (var body in bodies)
-                {
-                    BindBody(body);
-                    HashSet<string> items = new(itemBans[body].Value.Split(",")
-                        .Select(b => b.Trim())
-                        .Where(b => !string.IsNullOrEmpty(b))
-                    );
-                    plugin.userItemBans[body] = items;
-                }
-            }
-
-            public void Save()
-            {
-                // TODO
-                // update charNames
-                charNames.Value = plugin.userItemBans.Keys.Join();
-                // update binds
-                foreach (var record in plugin.userItemBans)
-                {
-                    itemBans[record.Key].Value = record.Value.Join();
-                }
-                // no cleanup necessary...
-                // because we do it when loading right after
-                Load();
-            }
-
-            public void Cleanup()
-            {
-                // TODO
-            }
-        }
-
-        public static string SanitizePrefabName(string prefabName)
-        {
-            // TODO
-            return prefabName;
-        }
-
-        public static string GetPrefabNameFromClone(string cloneName)
-        {
-            return cloneName.Substring(0, cloneName.LastIndexOf("(Clone)"));
-        }
 
         public static string GetPrefabNameFromItem(string itemName)
         {
             return itemName.Substring(itemName.IndexOf("Index.") + 6);
         }
         
-        internal ConfigHolder config;
+        internal ConfigManager config;
         
         internal void Awake()
         {

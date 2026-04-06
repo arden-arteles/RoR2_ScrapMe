@@ -21,7 +21,8 @@ The config should be applied to your current run immediately, but won't apply to
 ### how to use (dev)
 
 For mod devs, add a dependency on ScrapMe, then call `ScrapMe.ScrapMe.plugin.SetBans(bodyName, [itemNames])`,
-ideally with `RoR2Application.OnLoad`, or from `Start()`.
+ideally with `RoR2Application.OnLoad`, or from `Start()`. All of the setup is completed in `Awake()`, though,
+so setting bans can be done from your own `Awake()` with a soft dependency.
 
 Don't worry about having to clean config when a broken item stops being broken, this API
 is separate from the user config, just remove the item ban and you'll be able to 
