@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using HarmonyLib;
+﻿using HarmonyLib;
 using RoR2;
 
 namespace ScrapMe;
@@ -16,36 +15,29 @@ internal static class RoR2Patches
     {
         if (!__runOriginal || __instance == null || body == null) return;
         
-        var bodyName = Utils.GetPrefabNameFromClone(body.name);
-        if (bodyName == null) return; // should not happen but go my nullcheck
-
-        var itemBans = Utils.GetBans([
-                ScrapMe.plugin.devItemBans[bodyName],
-                ScrapMe.plugin.userItemBans[bodyName]
-            ], [
-        
-        ]);
-        if (itemBans == null || itemBans.Count == 0) return; // if there aren't bans
+        var itemBans = Utils.GetBans(body.bodyIndex);
+        if (itemBans.Count == 0) return; // if there aren't bans
         
         var pickupState = __instance.pickup;
         // pickupState.pickupIndex guaranteed never null
         
         var pickupDef = PickupCatalog.GetPickupDef(pickupState.pickupIndex);
-        if (pickupDef == null || pickupDef.nameToken == null) return;
+        if (pickupDef == null || pickupDef.itemIndex == ItemIndex.None) return;
         
-        var itemName = Utils.GetPrefabNameFromItem(pickupDef.internalName);
+        // var itemName = Utils.GetPrefabNameFromItem(pickupDef.internalName);
         // realistically should not be null
         
-        Log.Debug($"{bodyName} picking up {itemName}");
+        Log.Debug($"{body.name} picking up {pickupDef.internalName}");
+
+        if (!itemBans.Contains(pickupDef.itemIndex)) return;
         
-        PickupDef newPickup = Utils.GetReplacementPickup(pickupDef, itemBans);
-        if (newPickup == null) return;
+        var newItem = Utils.GetReplacementItem(pickupDef.itemIndex);
+        if (newItem == ItemIndex.None) return;
+        var newDef = ItemCatalog.GetItemDef(newItem);
+        var newPickup = newDef.CreatePickupDef();
         
-        Log.Info($"Replacing {itemName} with {ScrapMe.GetPrefabNameFromItem(newPickup.internalName)}");
+        Log.Info($"Replacing {pickupDef.internalName} with {newDef.name}");
         __instance.pickup = new UniquePickup(newPickup.pickupIndex);
     }
-    
-    // patch 2: when character enters stage, check inventory for offending items,
-    // and scrap them.
     
 }

@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Runtime.CompilerServices;
 using BepInEx.Configuration;
-using HarmonyLib;
 using RiskOfOptions;
 using RiskOfOptions.Options;
 
@@ -20,38 +19,21 @@ public static class RiskOfOptionsCompat
             return (bool)_enabled;
         }
     }
-
-    /*[MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-    public static void SomeMethodThatRequireTheDependencyToBeHere()
-    {
-        // stuff that require the dependency to be loaded
-    }*/
+    
     [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
     internal static void InitConfigMenu()
     {
         if (!enabled) return;
-        ModSettingsManager.AddOption(new StringInputFieldOption(ScrapMe.plugin.config.charNames));
+        ModSettingsManager.AddOption(new StringInputFieldOption(ScrapMe.plugin.configManager.charNames));
         ModSettingsManager.AddOption(
             new GenericButtonOption("Create Entry for Current Character", "! Main", CreateCurrentBodyEntry)
         );
-        // ModSettingsManager.AddOption(new StringInputFieldOption(ScrapMe.plugin.config.copyHolder));
-        // ModSettingsManager.AddOption(new GenericButtonOption("Copy Character Name Token", "! Main", CopyCharacterNames));
-        // ModSettingsManager.AddOption(new GenericButtonOption("Save Config", "! Main", ScrapMe.plugin.config.Save));
         ModSettingsManager.AddOption(
-            new GenericButtonOption("Apply Changes", "! Main", ScrapMe.plugin.config.Load)
+            new GenericButtonOption("Apply Changes", "! Main", ScrapMe.plugin.configManager.Load)
         );
-        // yes this initiates a full config load. yes i'm too lazy to find a better solution. deal with it
-        // TODO create config entry for current char
+        // yes this initiates a full configManager load. yes i'm too lazy to find a better solution. deal with it
         
     }
-
-    /*[MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-    static void CopyCharacterNames()
-    {
-        var names = RoR2.PlayerCharacterMasterController.instances
-            .Select(c => ScrapMe.GetPrefabNameFromClone(c.body.name));
-        ScrapMe.plugin.config.copyHolder.Value = names.Join();
-    }*/
     
     internal static readonly HashSet<string> mappedEntries = [];
 
@@ -61,9 +43,9 @@ public static class RiskOfOptionsCompat
         var objNames = RoR2.PlayerCharacterMasterController.instances.Select(b => b.body.name);
         foreach (var name in objNames) {
             var prefabName = Utils.GetPrefabNameFromClone(name);
-            if (ScrapMe.plugin.config.BindBody(prefabName)) // also creates an area to input. baller
+            if (ScrapMe.plugin.configManager.BindBody(prefabName)) // also creates an area to input. baller
             {
-                ScrapMe.plugin.config.charNames.Value += $",{prefabName}";
+                ScrapMe.plugin.configManager.charNames.Value += $",{prefabName}";
                 Log.Info($"Created entry for body {prefabName}");
             }
             else
@@ -72,25 +54,17 @@ public static class RiskOfOptionsCompat
             }
         }
     }
-    
-    [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-    internal static void CreateBanEntry(ConfigEntry<string> associated)
-    {
-        if (!enabled) return;
-        
-        var name = associated.Definition.Key;
-        if (mappedEntries.Contains(name)) return;
-        
-        ModSettingsManager.AddOption(new StringInputFieldOption(associated));
-        mappedEntries.Add(name);
-    }
 
-    internal static void CreateUnbanEntry(ConfigEntry<string> associated)
+    [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+    internal static void CreateConfigEntry(ConfigEntry<string> associated)
     {
         if (!enabled) return;
+
         var name = associated.Definition.Key;
         if (mappedEntries.Contains(name)) return;
+        
         ModSettingsManager.AddOption(new StringInputFieldOption(associated));
         mappedEntries.Add(name);
+
     }
 }

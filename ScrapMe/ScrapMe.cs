@@ -1,8 +1,5 @@
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using BepInEx;
-using BepInEx.Configuration;
 using HarmonyLib;
 using RoR2;
 
@@ -13,6 +10,7 @@ namespace ScrapMe
     // This attribute is required, and lists metadata for your plugin.
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
     [BepInDependency("com.rune580.riskofoptions", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("com.Gorakh.ItemQualities", BepInDependency.DependencyFlags.SoftDependency)]
     public class ScrapMe : BaseUnityPlugin
     {
         /// singleton
@@ -21,71 +19,7 @@ namespace ScrapMe
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "not_score";
         public const string PluginName = "ScrapMe";
-        public const string PluginVersion = "0.2.0";
-        
-        /*
-        // failed attempt at impl config here
-        // leaving this in here because i want halloween graveyard in april
-        internal class ConfigHolder
-        {
-            public readonly ConfigEntry<string[]> changedBodies;
-            public readonly Dictionary<string, ConfigEntry<string[]>> bannedItems = new();
-            public ConfigHolder()
-            {
-                changedBodies = plugin.Config.Bind<string[]>(
-                    "General",
-                    "Patched Bodies",
-                    [],
-                    "Bodies to be patched. Used for runtime config binding. Bodies not in here won't be saved in config."
-                );
-                foreach (var bodyName in changedBodies.Value)
-                {
-                    bannedItems[bodyName] = plugin.Config.Bind<string[]>(
-                        "Item Bans",
-                        $"{bodyName}_BANS",
-                        [],
-                        $"Items to auto-scrap for {bodyName}"
-                    );
-                }
-            }
-
-            public void Load()
-            {
-                // get new bodies
-                
-                // bind new config
-                
-                // release old config
-                
-                
-                plugin.itemBans = new Dictionary<string, HashSet<string>>();
-                foreach (var entry in bannedItems)
-                {
-                    plugin.itemBans[entry.Key] = new(entry.Value.Value);
-                }
-            }
-
-            public void Save()
-            {
-                var newBodies = new HashSet<string>(plugin.itemBans.Keys);
-                changedBodies.Value = [..newBodies];
-                foreach (var bodyName in newBodies)
-                {
-                    bannedItems[bodyName].Value = [..plugin.itemBans[bodyName]];
-                }
-                // clean up empty
-                foreach (var bodyName in bannedItems.Keys)
-                {
-                    if (!newBodies.Contains(bodyName))
-                    {
-                        plugin.Config.Remove(bannedItems[bodyName].Definition);
-                    }
-                }
-            }
-        }
-
-        internal ConfigHolder config;
-        */
+        public const string PluginVersion = "0.3.0";
 
         
 
@@ -94,7 +28,7 @@ namespace ScrapMe
             return itemName.Substring(itemName.IndexOf("Index.") + 6);
         }
         
-        internal ConfigManager config;
+        internal ConfigManager configManager;
         
         internal void Awake()
         {
@@ -107,53 +41,89 @@ namespace ScrapMe
             
             harmony.PatchAll(typeof(RoR2Patches));
 
-            config = new();
-            config.Load();
+            configManager = new();
+            configManager.Load();
 
+            RoR2Application.onLoad += OnLoad;
+        }
+
+        public void OnLoad()
+        {
             RiskOfOptionsCompat.InitConfigMenu();
+            PresetBans();
         }
 
         /// <summary>
-        /// Gets the bans for a given character.
+        /// Gets the developer-set bans for a given character.
         /// </summary>
-        /// <param name="bodyName">Name of the body's prefab.</param>
+        /// <param name="bodyIndex">Name of the body's prefab.</param>
         /// <returns></returns>
-        public HashSet<string> GetBans(string bodyName)
+        public HashSet<ItemIndex> GetDevBans(BodyIndex bodyIndex)
         {
-            if (!devItemBans.ContainsKey(bodyName)) 
-                devItemBans[bodyName] = new();
-            return devItemBans[bodyName];
+            if (!devItemBans.ContainsKey(bodyIndex))
+            {
+                devItemBans[bodyIndex] = new();
+                mappedBodies.Add(bodyIndex);
+            }
+
+            return devItemBans[bodyIndex];
         }
 
         /// <summary>
         /// Set the bans of a particular character.
         /// </summary>
-        /// <param name="bodyName">Name of the body's prefab.</param>
-        /// <param name="bans">Collection of PickupDef.internalName's for items to be baned.</param>
-        public void SetBans(string bodyName, IEnumerable<string> bans)
+        /// <param name="bodyIndex">Name of the body's prefab.</param>
+        /// <param name="bans">Collection of PickupDef.internalName's for items to be banned.</param>
+        public void SetDevBans(BodyIndex bodyIndex, IEnumerable<ItemIndex> bans)
         {
-            devItemBans[bodyName] = new(bans);
+            devItemBans[bodyIndex] = new(bans);
+            mappedBodies.Add(bodyIndex);
         }
 
-        /*[ConCommand(commandName = "scrapme.ban_item", helpText = "Add an item to this character's ban config")]
-        public void ConsoleCommandAddBan(ConCommandArgs args)
+        public void SetDevBans(string bodyName, IEnumerable<string> bans)
         {
-            
-        }*/
-        
+            var bodyIndex = BodyCatalog.FindBodyIndex(bodyName);
+            if (bodyIndex == BodyIndex.None)
+            {
+                Log.Warning($"Couldn't add bans for body {bodyName}; wasn't able to resolve name in catalog");
+                return;
+            }
+
+            HashSet<ItemIndex> items = new();
+            foreach (var ban in bans)
+            {
+                var itemIndex = ItemCatalog.FindItemIndex(ban);
+                if (itemIndex == ItemIndex.None)
+                {
+                    Log.Info($"Couldn't find definition for item {ban}, skipping");
+                }
+                else
+                {
+                    items.Add(itemIndex);
+                }
+            }
+            SetDevBans(bodyIndex, items);
+        }
+
+        internal void PresetBans()
+        {
+            SetDevBans("RobBelmontBody",["BarrierOnCooldown","JumpBoost","JumpDamageStrike"]);
+            SetDevBans("RobRavagerBody",["JumpBoost","JumpDamageStrike"]);
+        }
         
         internal void Start()
         {
-            // Log.Info("we made it lesgo");
-            // SetBans("COMMANDO_BODY_NAME", ["ITEM_HEALINGPOTION_NAME", "ITEM_SEED_NAME", "ITEM_BARRIERONOVERHEAL_NAME", "ITEM_PARENTEGG_NAME"]);
-            // power elixir leeching seed aegis and planula
+            
         }
+        
+        internal readonly Dictionary<BodyIndex, HashSet<ItemIndex>> devItemBans = new();
 
-        /// <summary>
-        /// Apply your necessary auto-scrap rules here.
-        /// </summary>
-        internal Dictionary<string, HashSet<string>> devItemBans = new();
+        internal readonly Dictionary<BodyIndex, HashSet<ItemIndex>> userItemBans = new();
 
-        internal Dictionary<string, HashSet<string>> userItemBans = new();
+        internal readonly Dictionary<BodyIndex, HashSet<ItemIndex>> userItemUnbans = new();
+
+        internal readonly Dictionary<BodyIndex, HashSet<ItemIndex>> qualityBans = new();
+        
+        internal readonly HashSet<BodyIndex> mappedBodies = [];
     }
 }

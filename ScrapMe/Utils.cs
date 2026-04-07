@@ -1,102 +1,73 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using RoR2;
 
 namespace ScrapMe;
 
 public static class Utils
 {
-    public static HashSet<string> GetBans(IEnumerable<HashSet<string>> bans, IEnumerable<HashSet<string>> unbans = null)
+    [NotNull]
+    public static HashSet<ItemIndex> GetBans(BodyIndex bodyIndex, bool withQuality = true)
     {
-        HashSet<string> filters = [];
-        if (bans == null) return null;
-        foreach (var banSet in bans)
+        if (bodyIndex == BodyIndex.None) return [];
+        var bans = ScrapMe.plugin.devItemBans[bodyIndex]
+            .Union(ScrapMe.plugin.userItemBans[bodyIndex]);
+        if (withQuality)
         {
-            if (banSet == null) continue;
-            filters.UnionWith(banSet);
+            bans = bans.Union(ScrapMe.plugin.qualityBans[bodyIndex]);
         }
-        if (unbans == null) return filters;
-        
-        foreach (var unbanSet in unbans)
-        {
-            if (unbanSet == null) continue;
-            filters.ExceptWith(unbanSet);
-        }
-        return filters;
+        return bans.Except(ScrapMe.plugin.userItemUnbans[bodyIndex]).ToHashSet();
     }
 
     public static string GetPrefabNameFromItem(string itemName)
     {
         return itemName.Substring(itemName.IndexOf("Index.") + 6);
     }
+
+    private static Dictionary<ItemTier, ItemIndex> scrapLookup = [];
     
-    public static PickupDef GetReplacementPickup(PickupDef pickupDef, HashSet<string> itemBans)
+    public static ItemIndex GetScrapForTier(ItemTier tier)
     {
-        var itemName = GetPrefabNameFromItem(pickupDef.internalName);
-        
-        if (!itemBans.Contains(itemName)) return null; // item is fine
-        
-        // item needs to be replaced, depending on the tier
-        PickupDef newPickup = null;
-        
-        if (pickupDef.itemIndex == ItemIndex.None)
+        if (!scrapLookup.ContainsKey(tier))
         {
-            if (pickupDef.coinValue > 0) return null; // lunar coin
-            if (pickupDef.droneIndex != DroneIndex.None) return null;
-            if (pickupDef.artifactIndex != ArtifactIndex.None) return null; // ???? why are these pickups
-            if (pickupDef.equipmentIndex != EquipmentIndex.None) return null; // could do equipment swap but idrc
-            Log.Error($"Undefined behavior for pickup {pickupDef.internalName}");
-            return null;
-        }
-        
-        switch (pickupDef.itemTier)
-        {
-            case ItemTier.Tier1:
-            case ItemTier.Tier2:
-            case ItemTier.Tier3:
-            case ItemTier.Boss:
-                newPickup = PickupCatalog.GetPickupDef(
-                    PickupCatalog.FindScrapIndexForItemTier(pickupDef.itemTier)
-                );
-                break;
-            case ItemTier.Lunar:
-                newPickup = PickupCatalog.GetPickupDef(
-                    PickupCatalog.FindPickupIndex(ItemCatalog.FindItemIndex("Pearl"))
-                );
-                // this is what happens when you "scrap" a lunar.
-                // except it auto-scraps so no irradiant pearl for you
-                break;
-            case ItemTier.VoidTier1:
-                newPickup = PickupCatalog.GetPickupDef(
-                    PickupCatalog.FindScrapIndexForItemTier(ItemTier.Tier1)
-                );
-                break;
-            case ItemTier.VoidTier2:
-                newPickup = PickupCatalog.GetPickupDef(
-                    PickupCatalog.FindScrapIndexForItemTier(ItemTier.Tier2)
-                );
-                break;
-            case ItemTier.VoidTier3:
-                newPickup = PickupCatalog.GetPickupDef(
-                    PickupCatalog.FindScrapIndexForItemTier(ItemTier.Tier3)
-                );
-                break;
-            case ItemTier.VoidBoss:
-                newPickup = PickupCatalog.GetPickupDef(
-                    PickupCatalog.FindScrapIndexForItemTier(ItemTier.Boss)
-                );
-                break;
-            default:
-                Log.Error($"Failed to find appropriate replacement for item {pickupDef.internalName}");
-                return null;
-            // was thinking of full interrupting here but idk what that would have side effects on
-            // so nothing happens instead
-            // __runOriginal = false;
-            // you just will not be able to pick up the item
-            // break;
+            switch (tier)
+            {
+                case ItemTier.Lunar:
+                    // this is what happens when you "scrap" a lunar.
+                    // except it auto-scraps so no irradiant pearl for you
+                    scrapLookup[tier] = ItemCatalog.FindItemIndex("Pearl");
+                    break;
+                case ItemTier.Tier1:
+                case ItemTier.VoidTier1:
+                    scrapLookup[tier] = ItemCatalog.FindItemIndex("ScrapWhite");
+                    break;
+                case ItemTier.Tier2:
+                case ItemTier.VoidTier2:
+                    scrapLookup[tier] = ItemCatalog.FindItemIndex("ScrapGreen");
+                    break;
+                case ItemTier.Tier3:
+                case ItemTier.VoidTier3:
+                    scrapLookup[tier] = ItemCatalog.FindItemIndex("ScrapRed");
+                    break;
+                case ItemTier.Boss:
+                case ItemTier.VoidBoss:
+                    scrapLookup[tier] = ItemCatalog.FindItemIndex("ScrapYellow");
+                    break;
+                default:
+                    Log.Error($"Failed to find appropriate replacement for item in tier {ItemTierCatalog.GetItemTierDef(tier).name}");
+                    return ItemIndex.Count;
+            }
         }
 
-        return newPickup;
+        return scrapLookup[tier];
+    }
+
+    public static ItemIndex GetReplacementItem(ItemIndex item)
+    {
+        var scrap = GetScrapForTier(ItemCatalog.GetItemDef(item).tier);
+        return QualityCompat.CarryQualityToNewItem(item, scrap);
     }
     
     public static string GetPrefabNameFromClone(string cloneName)
@@ -108,5 +79,28 @@ public static class Utils
     {
         // TODO
         return prefabName;
+    }
+
+    public static void CheckInventory(CharacterBody body)
+    {
+        if (body == null) return;
+        
+        var bans = GetBans(body.bodyIndex);
+        foreach (var itemBan in bans)
+        {
+            var itemCount = body.inventory.GetItemCountPermanent(itemBan);
+            if (itemCount > 0)
+            {
+                body.inventory.RemoveItemPermanent(itemBan, itemCount);
+                body.inventory.GiveItemPermanent(GetReplacementItem(itemBan), itemCount);
+            }
+
+            var tempItemCount = body.inventory.GetTempItemRawValue(itemBan);
+            if (tempItemCount > 0)
+            {
+                body.inventory.RemoveItemTemp(itemBan, (int) Math.Ceiling(tempItemCount));
+                body.inventory.GiveItemTemp(GetReplacementItem(itemBan), tempItemCount);
+            }
+        }
     }
 }
