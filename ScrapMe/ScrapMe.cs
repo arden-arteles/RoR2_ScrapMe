@@ -20,13 +20,8 @@ namespace ScrapMe
         public const string PluginAuthor = "not_score";
         public const string PluginName = "ScrapMe";
         public const string PluginVersion = "0.3.0";
-
         
-
-        public static string GetPrefabNameFromItem(string itemName)
-        {
-            return itemName.Substring(itemName.IndexOf("Index.") + 6);
-        }
+        
         
         internal ConfigManager configManager;
         
@@ -38,17 +33,16 @@ namespace ScrapMe
             Log.Init(Logger);
 
             var harmony = new Harmony(PluginGUID);
-            
             harmony.PatchAll(typeof(RoR2Patches));
 
             configManager = new();
-            configManager.Load();
 
             RoR2Application.onLoad += OnLoad;
         }
 
         public void OnLoad()
         {
+            configManager.Load(); // in here now. lets every mod load first
             RiskOfOptionsCompat.InitConfigMenu();
             PresetBans();
         }
@@ -57,7 +51,7 @@ namespace ScrapMe
         /// Gets the developer-set bans for a given character.
         /// </summary>
         /// <param name="bodyIndex">Name of the body's prefab.</param>
-        /// <returns></returns>
+        /// <returns>HashSet for performing set operations on</returns>
         public HashSet<ItemIndex> GetDevBans(BodyIndex bodyIndex)
         {
             if (!devItemBans.ContainsKey(bodyIndex))
@@ -109,11 +103,6 @@ namespace ScrapMe
         {
             SetDevBans("RobBelmontBody",["BarrierOnCooldown","JumpBoost","JumpDamageStrike"]);
             SetDevBans("RobRavagerBody",["JumpBoost","JumpDamageStrike"]);
-        }
-        
-        internal void Start()
-        {
-            
         }
         
         internal readonly Dictionary<BodyIndex, HashSet<ItemIndex>> devItemBans = new();
