@@ -64,6 +64,8 @@ public static class Utils
         return scrapLookup[tier];
     }
 
+    
+    
     public static ItemIndex GetReplacementItem(ItemIndex item)
     {
         var scrap = GetScrapForTier(ItemCatalog.GetItemDef(item).tier);

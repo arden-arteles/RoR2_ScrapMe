@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using RoR2;
+using RoR2.Items;
 
 namespace ScrapMe;
 
@@ -15,6 +16,7 @@ internal static class RoR2Patches
     {
         if (!__runOriginal || __instance == null || body == null) return;
         
+        
         var itemBans = Utils.GetBans(body.bodyIndex);
         if (itemBans.Count == 0) return; // if there aren't bans
         
@@ -28,8 +30,11 @@ internal static class RoR2Patches
         // realistically should not be null
         
         Log.Debug($"{body.name} picking up {pickupDef.internalName}");
-
+        
         if (!itemBans.Contains(pickupDef.itemIndex)) return;
+
+        var voidItem = ContagiousItemManager.GetTransformedItemIndex(pickupDef.itemIndex);
+        if (voidItem != ItemIndex.None && body.inventory.GetItemCountEffective(voidItem) > 0) return;
         
         var newItem = Utils.GetReplacementItem(pickupDef.itemIndex);
         if (newItem == ItemIndex.None) return;

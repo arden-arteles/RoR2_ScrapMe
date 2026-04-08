@@ -42,11 +42,13 @@ calls I've seen so far, so bring it up on the discord if it becomes an issue.
     * [ ] Add scrapping newly-banned items in inventory when applying config.
     * [?] Add ability to unban dev-banned items. At your own risk.
 * [ ] Add auto-scrapping items when changing characters, i.e. Artifact of Metamorphosis.
-* [ ] Figure out a good system to ban broken item combos, i.e. Visions of Heresy + Eclipse Lite.
-  * [ ] Ensure said system can be config'd
+* [ ] Figure out a good system to ban item combos, i.e. Visions of Heresy + Eclipse Lite.
+  * [ ] Ensure said system can be configured by end users.
 * [ ] Work out server-client interaction, if any clients have the mod installed.
   * I'm pretty sure this mod is server-sided, but not certain.
-* [ ] Add Quality compat. (Items will be replaced with items of the appropriate quality as well as tier.)
+* [√] Add Quality compat. (Items will be replaced with items of the appropriate quality as well as tier.)
+* [√] Item corruption checking. (If a banned item would be corrupted, let it corrupt.)
+* [ ] Improve item replacement clarity a la void item corruption popup.
 
 ## thanks
 
