@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using RoR2;
-using RoR2.Items;
 
 namespace ScrapMe;
 
@@ -17,7 +16,7 @@ internal static class RoR2Patches
         if (!__runOriginal || __instance == null || body == null) return;
         
         
-        var itemBans = Utils.GetBans(body.bodyIndex);
+        var itemBans = ScrapMe.plugin.bans.All(body.bodyIndex);
         if (itemBans.Count == 0) return; // if there aren't bans
         
         var pickupState = __instance.pickup;
@@ -33,16 +32,32 @@ internal static class RoR2Patches
         
         if (!itemBans.Contains(pickupDef.itemIndex)) return;
 
-        var voidItem = ContagiousItemManager.GetTransformedItemIndex(pickupDef.itemIndex);
-        if (voidItem != ItemIndex.None && body.inventory.GetItemCountEffective(voidItem) > 0) return;
+        /*var voidItem = ContagiousItemManager.GetTransformedItemIndex(pickupDef.itemIndex);
+        if (voidItem != ItemIndex.None && body.inventory.GetItemCountEffective(voidItem) > 0) return;*/
+        // check if the player has corresponding void items. plural.
+        var voids = QualityCompat.GetCorrespondingVoids(pickupDef.itemIndex);
+        foreach (var voidItem in voids)
+        {
+            if (voidItem == ItemIndex.None) continue;
+            if (body.inventory.GetItemCountEffective(voidItem) > 0) return;
+        }
         
         var newItem = Utils.GetReplacementItem(pickupDef.itemIndex);
         if (newItem == ItemIndex.None) return;
         var newDef = ItemCatalog.GetItemDef(newItem);
-        var newPickup = newDef.CreatePickupDef();
+        var newPickupIdx = PickupCatalog.FindPickupIndex(newDef.itemIndex);
+        // var newPickup = 
         
-        Log.Info($"Replacing {pickupDef.internalName} with {newDef.name}");
-        __instance.pickup = new UniquePickup(newPickup.pickupIndex);
+        Log.Info($"Replacing {pickupDef.internalName} with {newDef.name} (index {newPickupIdx})");
+        __instance.pickup = new UniquePickup
+        {
+            pickupIndex = newPickupIdx,
+            decayValue = __instance.pickup.decayValue,
+            upgradeValue = __instance.pickup.upgradeValue
+        };
     }
+    
+    // TODO [0.4] Apply on character transform
+    
     
 }

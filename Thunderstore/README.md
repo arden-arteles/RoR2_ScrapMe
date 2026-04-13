@@ -9,20 +9,19 @@ blacklist it for every character, this is the mod for you.
 ### how to use (player)
 
 Instructions should appear in the config file after first launch.
-Currently, it's recommended to use RiskOfOptions to configure the mod, but this is not required.
+Currently, it's recommended to use RiskOfOptions to configure the mod, but is not required.
 
 Here's a quick guide:
 1. Click the button to create an entry for the current character.
-2. In the characters section, enter in the item ids you want banned.
+2. In the characters section, enter in the item IDs you want banned.
+  * With Quality, to ban Rare Leeching Seed, you would add `SeedRare`, for example
 3. Click "Apply" in the main section.
 
 The config should be applied to your current run immediately, but won't apply to your current inventory at the moment.
 
 ### how to use (dev)
 
-For mod devs, add a dependency on ScrapMe, then call `ScrapMe.ScrapMe.plugin.SetBans(bodyName, [itemNames])`,
-ideally with `RoR2Application.OnLoad`, or from `Start()`. All of the setup is completed in `Awake()`, though,
-so setting bans can be done from your own `Awake()` with a soft dependency.
+For mod devs, add a dependency on ScrapMe, then modify the set returned by `ScrapMe.plugin.GetDevBans(BodyIndex)`.
 
 Don't worry about having to clean config when a broken item stops being broken, this API
 is separate from the user config, just remove the item ban and you'll be able to 
@@ -33,22 +32,22 @@ calls I've seen so far, so bring it up on the discord if it becomes an issue.
 
 ## evil schemes
 
-* [√] Allow end-users to apply their own bans via config.
-* [√] Config do-over to use `CharacterBody.name` for consistency reasons. Breaking change.
-* [.] Add ability to adjust user item bans mid-game.
-  * [ ] Add ability to change bans via console command.
-  * [.] Add RiskOfOptions support.
-    * [ ] Add config auto-apply.
-    * [ ] Add scrapping newly-banned items in inventory when applying config.
-    * [?] Add ability to unban dev-banned items. At your own risk.
-* [ ] Add auto-scrapping items when changing characters, i.e. Artifact of Metamorphosis.
-* [ ] Figure out a good system to ban item combos, i.e. Visions of Heresy + Eclipse Lite.
-  * [ ] Ensure said system can be configured by end users.
-* [ ] Work out server-client interaction, if any clients have the mod installed.
-  * I'm pretty sure this mod is server-sided, but not certain.
-* [√] Add Quality compat. (Items will be replaced with items of the appropriate quality as well as tier.)
-* [√] Item corruption checking. (If a banned item would be corrupted, let it corrupt.)
-* [ ] Improve item replacement clarity a la void item corruption popup.
+* Config:
+  * [X] Re-do config to use `CharacterBody.name` rather than name tokens.
+  * [X] Add ability to change item bans mid-game.
+    * [ ] Add DebugToolkit compat.
+    * [X] Add RiskOfOptions compat.
+      * [ ] Add config auto-apply.
+    * [ ] Scrub inventory on changes to item bans.
+  * [X] Add ability to unban items.
+* Implementation
+  * [ ] Add ability to ban particular item combos.
+  * [ ] Scrub inventory on morphing characters.
+  * [ ] Change item pickup notification for clarity a la void item corruption.
+* Compatibility:
+  * [X] Quality
+  * [X] Void item corruption exclusion
+  * [ ] Multiplayer (might work, but likely server-authority right now)
 
 ## thanks
 

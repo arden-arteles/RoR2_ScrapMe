@@ -1,15 +1,18 @@
 ## 0.3.0
 code Quality improvements
 
-* Internal migration to checking against `ItemIndex`es rather than `string`s at runtime.
+* Internal migration to checking against `itemIndex` rather than `internalName` at runtime.
+* Internal migration to dedicated ban record datatype to prevent issues with failed lookups.
 * Added some manual bans on dev-side for common item malfunctions.
-* `ScrapMe.plugin.SetBans` and `GetBans` have migrated to `SetDevBans` and `GetDevBans` for clarity.
+* `ScrapMe.plugin.SetBans` and `GetBans` have migrated to `GetDevBans` for clarity. You should be able to perform set operations on the returned set as necessary.
 * Added compatibility with Quality.
   * Banning an item with Quality will ban all its superior Quality variants.
 * Added the ability to unban items in the config.
   * Item unbans OVERRIDE all otherwise set item bans. Use at your own risk.
   * Item unbans can manually unban certain tiers of item for Quality as you would unban normally, but only unban that tier.
 * Banned items that can corrupt into other items in your inventory can be picked up and corrupted.
+* Added a few manual bans for Belmont and Ravager.
+* Added XML docfile to plugin folder.
 
 ## 0.2.0
 me when i break your config

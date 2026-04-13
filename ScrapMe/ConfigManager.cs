@@ -39,7 +39,7 @@ internal class ConfigManager
     }
     public void Load()
     {
-        ScrapMe.plugin.mappedBodies.Clear();
+        // ScrapMe.plugin.mappedBodies.Clear();
         // get new bodies
         var bodies = charNames.Value.Split(",")
             .Select(b => b.Trim())
@@ -54,24 +54,25 @@ internal class ConfigManager
                 .Select(b => b.Trim())
                 .Where(b => !string.IsNullOrEmpty(b))
             );
-            ScrapMe.plugin.userItemBans[bodyIndex] = new(userBans.Select(ItemCatalog.FindItemIndex));
+            ScrapMe.plugin.bans.user[bodyIndex] = new(userBans.Select(ItemCatalog.FindItemIndex));
             HashSet<string> userUnbans = new(itemUnbans[bodyName].Value.Split(",")
                 .Select(b => b.Trim())
                 .Where(b => !string.IsNullOrEmpty(b))
             );
-            ScrapMe.plugin.userItemUnbans[bodyIndex] = new(userUnbans.Select(ItemCatalog.FindItemIndex));
-            ScrapMe.plugin.mappedBodies.Add(bodyIndex);
+            ScrapMe.plugin.bans.unbans[bodyIndex] = new(userUnbans.Select(ItemCatalog.FindItemIndex));
+            // ScrapMe.plugin.mappedBodies.Add(bodyIndex);
+            QualityCompat.SetQualityVariantBans(bodyIndex);
         }
-        QualityCompat.SetQualityVariantBans();
     }
 
     public void Cleanup()
     {
-        foreach (var bodyIndex in ScrapMe.plugin.mappedBodies)
+        // TODO redo this
+        /*foreach (var bodyIndex in ScrapMe.plugin.mappedBodies)
         {
             var bodyName = BodyCatalog.GetBodyName(bodyIndex);
             UnbindBody(bodyName);
-        }
+        }*/
     }
 
     public bool UnbindBody(string bodyName)

@@ -1,7 +1,12 @@
 ﻿# Development
+### 0.4
+* [ ] Scrub inventory on character transforms
+* [ ] Scrub inventory on config update
+* [ ] Auto-apply config
+* [ ] DBTK compat
+
+### 0.5
+* [ ] Fix pickup notifications
+* 
 
 # Testing
-* [ ] Internal change: BodyIndex/ItemIndex
-* [ ] Feature: Ignore items that will be corrupted
-* [ ] Feature: Item unbans
-* [ ] Feature: Quality compat

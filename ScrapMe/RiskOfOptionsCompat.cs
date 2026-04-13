@@ -7,10 +7,16 @@ using RiskOfOptions.Options;
 
 namespace ScrapMe;
 
+/// <summary>
+/// Compatibility class for RiskOfOptions.
+/// </summary>
 public static class RiskOfOptionsCompat
 {
     private static bool? _enabled;
 
+    /// <summary>
+    /// Whether RiskOfOptions is enabled.
+    /// </summary>
     public static bool enabled {
         get {
             if (_enabled == null) {

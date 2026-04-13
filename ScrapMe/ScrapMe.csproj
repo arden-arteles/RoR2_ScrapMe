@@ -27,6 +27,7 @@
 	<PropertyGroup>
 		<DevProfilePath>D:\r2modman\RiskOfRain2\profiles\dev</DevProfilePath>
 		<DevPluginsPath>$(DevProfilePath)\BepInEx\plugins</DevPluginsPath>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	</PropertyGroup>
 	
 	<ItemGroup>
