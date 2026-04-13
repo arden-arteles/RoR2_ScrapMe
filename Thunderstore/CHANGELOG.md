@@ -1,3 +1,8 @@
+## 0.3.1
+no longer file system torment nexus
+
+* Internal change: Loading your config file should save it ONE time, instead of two times per configured character. Thanks to Gorakh for letting me know about this option.
+
 ## 0.3.0
 code Quality improvements
 
