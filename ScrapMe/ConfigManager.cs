@@ -39,7 +39,8 @@ internal class ConfigManager
     }
     public void Load()
     {
-        // ScrapMe.plugin.mappedBodies.Clear();
+        // thank you gorakh for helping me not nuke people's games when i load config
+        ScrapMe.plugin.Config.SaveOnConfigSet = false;
         // get new bodies
         var bodies = charNames.Value.Split(",")
             .Select(b => b.Trim())
@@ -63,6 +64,8 @@ internal class ConfigManager
             // ScrapMe.plugin.mappedBodies.Add(bodyIndex);
             QualityCompat.SetQualityVariantBans(bodyIndex);
         }
+        ScrapMe.plugin.Config.Save();
+        ScrapMe.plugin.Config.SaveOnConfigSet = true;
     }
 
     public void Cleanup()
