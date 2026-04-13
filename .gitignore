@@ -334,4 +334,4 @@ Thunderstore/plugins/not_score.ScrapMe/ScrapMe.*
 Thunderstore/upload.zip
 
 # VSCode Stuff
-Thundercore/.vscode/*
+Thunderstore/.vscode
