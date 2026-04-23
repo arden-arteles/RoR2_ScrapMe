@@ -1,9 +1,7 @@
-# R2Boilerplate
+# ScrapMe
 
-This repository contains a sample mod for Risk of Rain 2.
+This mod was initially created when I found a broken interaction between Myst and Fractured Timepiece (Sandswept). I wanted a way to disable the interaction, because spamming shift to heal to full wasn't fun, but I didn't want to blacklist the item entirely.
 
-You can clone this repository, open the visual studio solution file and compile it immediately.
+This project was the consequence of that. It's my first RoR2 mod, but I've done my best to use best practice where possible. The rest is me guessing and seeing what works.
 
-This repository is meant to represent best practices for starting a simple mod.
-
-Once your mod get compiled, you can utilize the Thunderstore folder for later uploading it to https://thunderstore.io/c/riskofrain2/
+I likely have uncommitted changes locally so it'd be great if I didn't have to resolve a merge conflict. Ping me on discord if you find something atrocious in here.
