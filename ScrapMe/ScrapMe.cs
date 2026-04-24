@@ -40,15 +40,10 @@ namespace ScrapMe
 
             configManager = new();
 
-            RoR2Application.onLoad += OnLoad;
+            RoR2EventHooks.Register();
         }
 
-        private void OnLoad()
-        {
-            PresetBans(); // load dev bans first to leverage the quality compat update
-            configManager.Load(); // in here now, to let every character and item load first
-            RiskOfOptionsCompat.InitConfigMenu();
-        }
+        
 
         /// <summary>
         /// Gets the developer-set bans for a given character.
