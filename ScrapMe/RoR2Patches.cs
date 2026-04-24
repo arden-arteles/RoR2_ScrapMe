@@ -31,16 +31,14 @@ internal static class RoR2Patches
         Log.Debug($"{body.name} picking up {pickupDef.internalName}");
         
         if (!itemBans.Contains(pickupDef.itemIndex)) return;
-
-        /*var voidItem = ContagiousItemManager.GetTransformedItemIndex(pickupDef.itemIndex);
-        if (voidItem != ItemIndex.None && body.inventory.GetItemCountEffective(voidItem) > 0) return;*/
-        // check if the player has corresponding void items. plural.
-        var voids = QualityCompat.GetCorrespondingVoids(pickupDef.itemIndex);
+        
+        /*var voids = QualityCompat.GetCorrespondingVoids(pickupDef.itemIndex);
         foreach (var voidItem in voids)
         {
             if (voidItem == ItemIndex.None) continue;
             if (body.inventory.GetItemCountEffective(voidItem) > 0) return;
-        }
+        }*/
+        if (!Utils.IsCorrespondingVoidInInv(pickupDef.itemIndex, body.inventory)) return;
         
         var newItem = Utils.GetReplacementItem(pickupDef.itemIndex);
         if (newItem == ItemIndex.None) return;
@@ -55,9 +53,10 @@ internal static class RoR2Patches
             decayValue = __instance.pickup.decayValue,
             upgradeValue = __instance.pickup.upgradeValue
         };
+        // CharacterMasterNotificationQueue.TransformationType
+        // TODO Character notification
+        // SendTransformNotification(component, result.takenItem.itemIndex, result.givenItem.itemIndex, (TransformationType)result.transformationType);
     }
     
-    // TODO [0.4] Apply on character transform
-    
-    
+    // TODO Scrub on character transform
 }
