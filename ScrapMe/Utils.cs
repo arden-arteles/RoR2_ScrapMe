@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using RoR2;
 
 namespace ScrapMe;
@@ -125,4 +126,25 @@ public static class Utils
             }
         }
     }
+
+    /// <summary>
+    /// Checks whether there is a corresponding void item in the player's inventory.
+    /// </summary>
+    /// <param name="item"></param>
+    /// <param name="inv"></param>
+    /// <returns></returns>
+    public static bool IsCorrespondingVoidInInv(ItemIndex item, Inventory inv)
+    {
+        return QualityCompat.GetCorrespondingVoids(item)
+            .Any(i => i != ItemIndex.None && inv.GetItemCountEffective(i) > 0);
+    }
+    /*{
+        var voids = QualityCompat.GetCorrespondingVoids(item);
+        foreach (var voidItem in voids)
+        {
+            if (voidItem == ItemIndex.None) continue;
+            if (inv.GetItemCountEffective(voidItem) > 0) return true;
+        }
+        return false;
+    }*/
 }
