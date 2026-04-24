@@ -1,3 +1,8 @@
+## 0.3.2
+pillow fight but i fill my pillowcase with bricks
+
+* HOTFIX: Loading plugin without Quality enabled prevents you from playing the game. Thanks to toast for reporting this and score for explaining why it was broken.
+
 ## 0.3.1
 no longer file system torment nexus
 

@@ -53,4 +53,4 @@ calls I've seen so far, so bring it up on the discord if it becomes an issue.
 
 * toast: the amazing and awesome icon
 * ror2 modcord: being patient and helpful
-* score: preparing me for the inevitable chogath problem
+* score: explaining why my soft compat wasn't a soft compat
