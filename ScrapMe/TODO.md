@@ -1,12 +1,13 @@
 ﻿# Development
-### 0.4
+### Fixes
+
+### Features
 * [ ] Scrub inventory on character transforms
 * [ ] Scrub inventory on config update
 * [ ] Auto-apply config
 * [ ] DBTK compat
-
-### 0.5
-* [ ] Fix pickup notifications
-* 
+* [ ] Better pickup notification
 
 # Testing
+* [ ] Recheck quality compat
+* [ ] Check benthic bloom interactions
