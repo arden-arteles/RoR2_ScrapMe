@@ -15,7 +15,6 @@ internal static class RoR2Patches
     {
         if (!__runOriginal || __instance == null || body == null) return;
         
-        
         var itemBans = ScrapMe.plugin.bans.All(body.bodyIndex);
         if (itemBans.Count == 0) return; // if there aren't bans
         
@@ -25,26 +24,16 @@ internal static class RoR2Patches
         var pickupDef = PickupCatalog.GetPickupDef(pickupState.pickupIndex);
         if (pickupDef == null || pickupDef.itemIndex == ItemIndex.None) return;
         
-        // var itemName = Utils.GetPrefabNameFromItem(pickupDef.internalName);
-        // realistically should not be null
-        
         Log.Debug($"{body.name} picking up {pickupDef.internalName}");
         
         if (!itemBans.Contains(pickupDef.itemIndex)) return;
-        
-        /*var voids = QualityCompat.GetCorrespondingVoids(pickupDef.itemIndex);
-        foreach (var voidItem in voids)
-        {
-            if (voidItem == ItemIndex.None) continue;
-            if (body.inventory.GetItemCountEffective(voidItem) > 0) return;
-        }*/
-        if (!Utils.IsCorrespondingVoidInInv(pickupDef.itemIndex, body.inventory)) return;
+        if (body.inventory == null) return; // why was i not checking this
+        if (Utils.IsCorrespondingVoidInInv(pickupDef.itemIndex, body.inventory)) return;
         
         var newItem = Utils.GetReplacementItem(pickupDef.itemIndex);
         if (newItem == ItemIndex.None) return;
         var newDef = ItemCatalog.GetItemDef(newItem);
         var newPickupIdx = PickupCatalog.FindPickupIndex(newDef.itemIndex);
-        // var newPickup = 
         
         Log.Info($"Replacing {pickupDef.internalName} with {newDef.name} (index {newPickupIdx})");
         __instance.pickup = new UniquePickup

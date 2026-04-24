@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using RoR2;
 
 namespace ScrapMe;
@@ -74,6 +75,7 @@ public class BanRecords
             this.itemNames = new HashSet<string>(itemNames);
         }
         
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)] // i swear to christ if this fixes it
         public void Resolve()
         {
             if (charName == null) return;
@@ -97,7 +99,8 @@ public class BanRecords
                 items.Add(itemIdx);
             }
             ScrapMe.plugin.bans.dev[body].UnionWith(items);
-            QualityCompat.SetQualityVariantBans(body);
+            if (QualityCompat.enabled)
+                QualityCompat.SetQualityVariantBans(body);
         }
     }
 

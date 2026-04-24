@@ -25,20 +25,19 @@
 	</ItemGroup>
 	
 	<PropertyGroup>
-		<DevProfilePath>D:\r2modman\RiskOfRain2\profiles\dev</DevProfilePath>
-		<DevPluginsPath>$(DevProfilePath)\BepInEx\plugins</DevPluginsPath>
+		<R2MMPath>D:\r2modman\RiskOfRain2</R2MMPath>
+		<DevProfilePath>$(R2MMPath)\profiles\dev</DevProfilePath>
+		<DevPluginsPath>$(DevProfilePath)\BepInEx\plugins</DevPluginsPath> <!-- note to self: kms -->
+		<CachePath>$(R2MMPath)\cache</CachePath>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	</PropertyGroup>
 	
 	<ItemGroup>
-	  	<!--<Reference Include="RiskOfOptions">
-	    	<HintPath>..\..\..\..\..\r2modman\RiskOfRain2\profiles\dev\BepInEx\plugins\Rune580-Risk_Of_Options\RiskOfOptions\RiskOfOptions.dll</HintPath>
-	  	</Reference>-->
 		<Reference Include="RiskOfOptions">
 			<HintPath>$(DevPluginsPath)\Rune580-Risk_Of_Options\RiskOfOptions\RiskOfOptions.dll</HintPath>
 		</Reference>
 		<Reference Include="ItemQualities">
-			<HintPath>$(DevPluginsPath)\Goorakh-Quality\Quality\ItemQualities.dll</HintPath>
+			<HintPath>$(CachePath)\Goorakh-Quality\0.7.4\plugins\Quality\ItemQualities.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 

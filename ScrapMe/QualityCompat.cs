@@ -66,6 +66,13 @@ public static class QualityCompat
         }
     }
 
+    /// <summary>
+    /// Returns a quality variant of newItem with oldItem's quality.
+    /// 
+    /// </summary>
+    /// <param name="oldItem"></param>
+    /// <param name="newItem"></param>
+    /// <returns>DEFAULT: <see cref="newItem"/></returns>
     [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
     internal static ItemIndex CarryQualityToNewItem(ItemIndex oldItem, ItemIndex newItem)
     {
@@ -74,14 +81,20 @@ public static class QualityCompat
         return QualityCatalog.GetItemIndexOfQuality(newItem, QualityCatalog.GetQualityTier(oldItem));
     }
     
+    /// <summary>
+    /// Gets all quality variants of an item.
+    /// </summary>
+    /// <param name="baseItemIndex">Index of an item</param>
+    /// <returns>
+    /// All items that are in the quality group.
+    /// DEFAULT: <see cref="baseItemIndex"/>
+    /// </returns>
     [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-    internal static IEnumerable<ItemIndex> GetCorrespondingVoids(ItemIndex corruptionCheck)
+    internal static IEnumerable<ItemIndex> GetQualityVariants(ItemIndex baseItemIndex)
     {
-        var respVoid = RoR2.Items.ContagiousItemManager.GetTransformedItemIndex(corruptionCheck);
-        if (respVoid == ItemIndex.None) return [];
-        if (!enabled) return [respVoid];
+        if (!enabled) return [baseItemIndex];
         
-        var group = QualityCatalog.GetItemQualityGroup(QualityCatalog.FindItemQualityGroupIndex(respVoid));
+        var group = QualityCatalog.GetItemQualityGroup(QualityCatalog.FindItemQualityGroupIndex(baseItemIndex));
         return [group.BaseItemIndex, group.UncommonItemIndex, group.RareItemIndex, group.EpicItemIndex, group.LegendaryItemIndex];
     }
 }

@@ -76,7 +76,12 @@ public static class Utils
     public static ItemIndex GetReplacementItem(ItemIndex item)
     {
         var scrap = GetScrapForTier(ItemCatalog.GetItemDef(item).tier);
-        return QualityCompat.CarryQualityToNewItem(item, scrap);
+        if (QualityCompat.enabled)
+        {
+            return QualityCompat.CarryQualityToNewItem(item, scrap);
+        }
+
+        return scrap;
     }
     
     /// <summary>
@@ -135,16 +140,16 @@ public static class Utils
     /// <returns></returns>
     public static bool IsCorrespondingVoidInInv(ItemIndex item, Inventory inv)
     {
-        return QualityCompat.GetCorrespondingVoids(item)
+        return GetCorrespondingVoids(item)
             .Any(i => i != ItemIndex.None && inv.GetItemCountEffective(i) > 0);
     }
-    /*{
-        var voids = QualityCompat.GetCorrespondingVoids(item);
-        foreach (var voidItem in voids)
-        {
-            if (voidItem == ItemIndex.None) continue;
-            if (inv.GetItemCountEffective(voidItem) > 0) return true;
-        }
-        return false;
-    }*/
+
+    internal static IEnumerable<ItemIndex> GetCorrespondingVoids(ItemIndex corruptionCheck)
+    {
+        var respVoid = RoR2.Items.ContagiousItemManager.GetTransformedItemIndex(corruptionCheck);
+        if (respVoid == ItemIndex.None) return [];
+        if (QualityCompat.enabled)
+            return QualityCompat.GetQualityVariants(respVoid);
+        return [respVoid];
+    }
 }
