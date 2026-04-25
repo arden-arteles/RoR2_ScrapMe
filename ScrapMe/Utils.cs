@@ -76,9 +76,9 @@ public static class Utils
     public static ItemIndex GetReplacementItem(ItemIndex item)
     {
         var scrap = GetScrapForTier(ItemCatalog.GetItemDef(item).tier);
-        if (QualityCompat.enabled)
+        if (QualityModule.enabled)
         {
-            return QualityCompat.CarryQualityToNewItem(item, scrap);
+            return QualityModule.Instance?.CarryQualityToNewItem(item, scrap) ?? scrap;
         }
 
         return scrap;
@@ -148,8 +148,8 @@ public static class Utils
     {
         var respVoid = RoR2.Items.ContagiousItemManager.GetTransformedItemIndex(corruptionCheck);
         if (respVoid == ItemIndex.None) return [];
-        if (QualityCompat.enabled)
-            return QualityCompat.GetQualityVariants(respVoid);
+        if (QualityModule.enabled)
+            return QualityModule.Instance?.GetQualityVariants(respVoid);
         return [respVoid];
     }
 }

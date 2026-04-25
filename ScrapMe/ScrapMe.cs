@@ -47,7 +47,7 @@ namespace ScrapMe
 
         /// <summary>
         /// Gets the developer-set bans for a given character.
-        /// After changing these bans, make sure to call <see cref="QualityCompat.SetQualityVariantBans(BodyIndex)"/>
+        /// After changing these bans, make sure to call <see cref="QualityModule.SetQualityVariantBans(BodyIndex)"/>
         /// </summary>
         /// <param name="bodyIndex">Name of the body's prefab.</param>
         /// <returns>HashSet for performing set operations on, or null if the index provided was None</returns>

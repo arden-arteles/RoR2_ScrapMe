@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using ItemQualities;
+using JetBrains.Annotations;
 using RoR2;
 
 namespace ScrapMe;
@@ -8,12 +10,12 @@ namespace ScrapMe;
 /// <summary>
 /// Container class for compatibility with Quality.
 /// </summary>
-public static class QualityCompat
+public class QualityModule
 {
     private static bool? _enabled;
 
     /// <summary>
-    /// Whether or not Quality is enabled.
+    /// Whether Quality mod is loaded.
     /// </summary>
     public static bool enabled {
         get {
@@ -24,11 +26,29 @@ public static class QualityCompat
         }
     }
 
+    [CanBeNull] private static QualityModule _instance = null;
+    /// <summary>
+    /// Instance of the compatibility module. If null, Quality is not loaded.
+    /// </summary>
+    /// <remarks>
+    /// Intent is to invoke methods like <c>QualityModule.instance.SetQualityVariantBans()</c>
+    /// </remarks>
+    [CanBeNull]
+    public static QualityModule Instance
+    {
+        get
+        {
+            if (_instance != null && enabled) return _instance;
+            if (enabled) _instance = new QualityModule();
+            return _instance;
+        }
+    }
+
     /// <summary>
     /// Updates the quality variant bans for ALL characters. Avoid using unless absolutely necessary.
     /// </summary>
     [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-    public static void SetQualityVariantBans()
+    public void SetQualityVariantBans()
     {
         if (!enabled) return;
         ScrapMe.plugin.bans.quality.record.Clear();
@@ -43,7 +63,7 @@ public static class QualityCompat
     /// </summary>
     /// <param name="bodyIndex">BodyIndex of the character to update.</param>
     [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-    public static void SetQualityVariantBans(BodyIndex bodyIndex)
+    public void SetQualityVariantBans(BodyIndex bodyIndex)
     {
         if (!enabled) return;
         var record = ScrapMe.plugin.bans.quality[bodyIndex];
@@ -70,11 +90,11 @@ public static class QualityCompat
     /// Returns a quality variant of newItem with oldItem's quality.
     /// 
     /// </summary>
-    /// <param name="oldItem"></param>
-    /// <param name="newItem"></param>
-    /// <returns>DEFAULT: <see cref="newItem"/></returns>
+    /// <param name="oldItem">Item to take the quality tier of.</param>
+    /// <param name="newItem">Item to apply the quality tier to.</param>
+    /// <returns>DEFAULT: <c>newItem</c></returns>
     [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-    internal static ItemIndex CarryQualityToNewItem(ItemIndex oldItem, ItemIndex newItem)
+    public ItemIndex CarryQualityToNewItem(ItemIndex oldItem, ItemIndex newItem)
     {
         if (!enabled) return newItem;
         if (QualityCatalog.GetQualityTier(oldItem) == QualityCatalog.GetQualityTier(newItem)) return newItem;
@@ -87,10 +107,10 @@ public static class QualityCompat
     /// <param name="baseItemIndex">Index of an item</param>
     /// <returns>
     /// All items that are in the quality group.
-    /// DEFAULT: <see cref="baseItemIndex"/>
+    /// DEFAULT: <c>[baseItemIndex]</c>
     /// </returns>
     [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-    internal static IEnumerable<ItemIndex> GetQualityVariants(ItemIndex baseItemIndex)
+    public IEnumerable<ItemIndex> GetQualityVariants(ItemIndex baseItemIndex)
     {
         if (!enabled) return [baseItemIndex];
         

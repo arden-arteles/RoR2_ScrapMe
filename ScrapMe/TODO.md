@@ -1,5 +1,6 @@
 ﻿# Development
 ### Fixes
+* [ ] Finish change: Use null coalesce as "is loaded" check.
 
 ### Features
 * [ ] Scrub inventory on character transforms

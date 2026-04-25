@@ -61,8 +61,8 @@ internal class ConfigManager
                 .Where(b => !string.IsNullOrEmpty(b))
             );
             ScrapMe.plugin.bans.unbans[bodyIndex] = new(userUnbans.Select(ItemCatalog.FindItemIndex));
-            if (QualityCompat.enabled)
-                QualityCompat.SetQualityVariantBans(bodyIndex);
+            if (QualityModule.enabled)
+                QualityModule.Instance?.SetQualityVariantBans(bodyIndex);
         }
         ScrapMe.plugin.Config.Save();
         ScrapMe.plugin.Config.SaveOnConfigSet = true;

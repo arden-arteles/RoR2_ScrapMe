@@ -99,8 +99,8 @@ public class BanRecords
                 items.Add(itemIdx);
             }
             ScrapMe.plugin.bans.dev[body].UnionWith(items);
-            if (QualityCompat.enabled)
-                QualityCompat.SetQualityVariantBans(body);
+            if (QualityModule.enabled)
+                QualityModule.Instance?.SetQualityVariantBans(body);
         }
     }
 
